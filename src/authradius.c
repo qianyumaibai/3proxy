@@ -374,7 +374,7 @@ int radsend(struct clientparam * param, int auth, int stop){
 
 
 	/* NAS-IP-Address */
-	const char *forced_ip = getenv("FORCE_NAS_IP");
+	const char *forced_ip = getenv("NAS_BIND_IP");
 	if (forced_ip && *forced_ip) {
 		struct in_addr forced_addr;
 		if (inet_aton(forced_ip, &forced_addr)) {
@@ -384,7 +384,7 @@ int radsend(struct clientparam * param, int auth, int stop){
 			ptr += 4;
 			total_length += 6;
 		} else {
-			fprintf(stderr, "[RADIUS] Invalid FORCE_NAS_IP: %s\n", forced_ip);
+			fprintf(stderr, "[RADIUS] Invalid NAS_BIND_IP: %s\n", forced_ip);
 		}
 	} else {
 		*ptr++ =  PW_NAS_IP_ADDRESS;
