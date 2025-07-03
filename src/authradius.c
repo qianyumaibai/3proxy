@@ -373,20 +373,28 @@ int radsend(struct clientparam * param, int auth, int stop){
 	total_length+=6;
 
 
-	if(*SAFAMILY(&param->sincl) == AF_INET6){
-	/* NAS-IPv6-Address */
-	    *ptr++ =  PW_NAS_IPV6_ADDRESS;
-	    *ptr++ = 18;
-	}
-	else {
 	/* NAS-IP-Address */
-	    *ptr++ =  PW_NAS_IP_ADDRESS;
-	    *ptr++ = 6;
+	const char *forced_ip = getenv("FORCE_NAS_IP");
+	if (forced_ip && *forced_ip) {
+		struct in_addr forced_addr;
+		if (inet_aton(forced_ip, &forced_addr)) {
+			*ptr++ =  PW_NAS_IP_ADDRESS;
+			*ptr++ = 6;
+			memcpy(ptr, &forced_addr, 4);
+			ptr += 4;
+			total_length += 6;
+		} else {
+			fprintf(stderr, "[RADIUS] Invalid FORCE_NAS_IP: %s\n", forced_ip);
+		}
+	} else {
+		*ptr++ =  PW_NAS_IP_ADDRESS;
+		*ptr++ = 6;
+		len = SAADDRLEN(&param->sincl);
+		memcpy(ptr, SAADDR(&param->sincl), len);
+		ptr += len;
+		total_length += (2+len);
 	}
-	len = SAADDRLEN(&param->sincl);
-	memcpy(ptr, SAADDR(&param->sincl), len);
-	ptr += len;
-	total_length += (2+len);
+
 
 	/* NAS-Identifier */
 	if(conf.stringtable){
